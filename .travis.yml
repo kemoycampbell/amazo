@@ -14,3 +14,11 @@ php:
   - 5.5
   # aliased to a recent 5.6.x version
   - 5.6
+
+services:
+  - mysql
+  -postgres
+
+env:
+  - DB=postgres
+  _ DB=mysql
