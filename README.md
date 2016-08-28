@@ -12,13 +12,38 @@ a more consistency way of parsing the return statements of the methods. For exam
 method, they are returned via std class with the following properties : status, error and method. Status always return 400, with
 error stating the type of error that occurs and methods indicate the method that the error occured in.
 
+## Available Methods
+ * connect()
+ * validate_ip($ip)
+ * get_ip_address() 
+ * crfValidating($crfname)
+ * enableSandbox()
+ * verifyUsername($username,$username_field_in_database,$table)
+ * verifyCredential($combination,$passwordField,$table,$identity,$identityField)
+ * generateCRFToken()
+ * generateProtection($username)
+ * autoLogoutExpireSession($logoutpath)
+ * enforcer($logoutPath)
+ * insert($columns,$bindings,$table,$values)
+ * elect($columns,$bindings,$table,$where='')
+ * delete($bindings,$table,$where)
+ * update($bindings, $table, $set,$where)
+ * generatePassCost($timeTarget,$preferTestPassword)
+ * generateSecurePasswordHash($username,$password)
+ * advanceSql($query,$bindings)
+ * createRandomGenerate($length,$includeSpecialChar='yes',$includeNum='yes',$includeString='yes')
+ * if_contain_special_chars($string)
+ * validateUSAZip($zip_code)
+
 
 
 
     
-#TODO Features/Options
-#
-#
+######TODO
+* finish commenting methods
+* improve code consistency
+* write more reliable tests
+* provide some sql codes that can be play with to test the demo
     
 #Contributing and goal
 
