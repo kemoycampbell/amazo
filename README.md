@@ -25,7 +25,7 @@ error stating the type of error that occurs and methods indicate the method that
  * autoLogoutExpireSession($logoutpath)
  * enforcer($logoutPath)
  * insert($columns,$bindings,$table,$values)
- * elect($columns,$bindings,$table,$where='')
+ * select($columns,$bindings,$table,$where='')
  * delete($bindings,$table,$where)
  * update($bindings, $table, $set,$where)
  * generatePassCost($timeTarget,$preferTestPassword)
