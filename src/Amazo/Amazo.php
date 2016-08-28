@@ -505,6 +505,158 @@ class Amazo
         }
     }//end of random generated function
 
+    public function trim($ip)
+    {
+        if(empty($ip) || $ip=='')
+        {
+            $obj = new \stdClass();
+            $obj->status = 400;
+            $obj->error = 'The parameter ip cannot be empty!';
+
+            return $obj;
+        }
+
+        else
+        {
+            $pos = strrpos($ip, '.');
+            if ($pos !== false) {
+                $ip = substr($ip, 0, $pos+1);
+            }
+            return $ip . '.0';
+
+        }
+    }
+
+
+    public function enforcer($logoutPath)
+    {
+        if($this->sandbox===true)
+        {
+            $ip = $this->ip;
+        }
+        else
+        {
+            $ip = $this->get_ip_address();
+        }
+
+        if($ip!=false)
+        {
+            //does the ip address match the current one stored in the session?
+            if($_SESSION['ip_address']!==$ip)
+            {
+                session_destroy();
+                header('Location: ' . urlencode($logoutPath));
+                exit;
+            }
+            //match
+            else
+            {
+                //the useragent doesnt match hence  destroy and forced
+                if (!isset($_SERVER['HTTP_USER_AGENT']) || $_SESSION['user_agent'] !== $_SERVER['HTTP_USER_AGENT'])
+                {
+
+                    session_destroy();
+                    header('Location: ' . urlencode($logoutPath));
+                    exit;
+                }
+                return false;
+            }
+
+
+        }
+
+        else
+        {
+            return true;
+        }
+    }
+
+    public function crfValidating($crfname)
+    {
+        //session has not started, start it
+        if (session_status() == PHP_SESSION_NONE)
+        {
+            session_start();
+        }
+
+        //check whether the user already declared the session['crfToken']
+        if(!isset($_SESSION['crfToken']))
+        {
+            $obj = new \stdClass();
+            $obj->status = 400;
+            $obj->error = "You havent declared the session 'crfToken' nor started it prior to calling this method";
+
+            return $obj;
+        }
+
+        //ensure that this is either a post or get
+        if(isset($_SERVER['REQUEST_METHOD']))
+        {
+            if($_SERVER['REQUEST_METHOD'] ==='POST' || $_SERVER['REQUEST_METHOD']==='GET')
+            {
+                $request = $_SERVER['REQUEST_METHOD'] ;
+                //ensure that the CRF exist
+                if(isset($_POST[$crfname]) || isset($GET[$crfname]))
+                {
+                    //the request is a post
+                    if($request==='POST')
+                    {
+                        //do it match the one of the session?
+                        if($_SESSION['crfToken']===$_POST[$crfname])
+                        {
+                            return true;
+                        }
+                        //request is get
+                        else if($_SESSION['crfToken']===$_GET[$crfname])
+                        {
+                            return true;
+                        }
+
+                        //neither match
+                        return false;
+                    }
+
+                }
+                return false;
+            }
+            else{
+                return false;
+            }
+        }
+
+        else{
+            return false;
+        }
+
+    }
+
+
+    function get_ip_address() {
+        $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
+        foreach ($ip_keys as $key) {
+            if (array_key_exists($key, $_SERVER) === true) {
+                foreach (explode(',', $_SERVER[$key]) as $ip) {
+                    // trim for safety measures
+                    $ip = trim($ip);
+                    // attempt to validate IP
+                    if ($this->validate_ip($ip))
+                    {
+                        return $ip;
+                    }
+                }
+            }
+        }
+        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
+    }
+
+    function validate_ip($ip)
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+            return false;
+        }
+        return true;
+    }
+
 
 
 
