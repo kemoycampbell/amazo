@@ -39,7 +39,11 @@ Security is more important than ever. Amazo was designed with security in mind. 
 are done using PDO/prepare statements. We also ensure that connection have been established prior to performing a CRUD operation. In additional, our methods perform validations prior to moving forwards such as parameters restrains etc. Amazo is constantly improving hence we welcome feedbacks,suggestions,inputs,criticism and how we can improve the overall security of the framework.
 
 ##Install
-A composer.json will be pushed soon. Til then use the terminal to clone or you can download the zip from here.
+A composer.json will be pushed soon. til then clone via the terminal as follow:
+
+    $ git clone --recursive https://github.com/kemoycampbell/amazo.git
+    $ cd cd amazo
+
 
 ##Usuage
 below you will find some examples of structured usuages
