@@ -1,6 +1,6 @@
 # Amazo Overview
 
-As we develops web applications, we want to spend time on doing real works instead of writing repeatous tasks such as prepare
+As we develops web applications, we want to spend time on doing real works instead of writing tedious tasks such as prepare
 statements to perform create, update and delete (CRUD) operations on the databases via PDO class, verify credentials, create
 secured hashed password and among others. Amazo is a OOP framework that aims on speeding up the overall development time by providing
 methods that already take care of those for you under the hood. Thus elimating the need for you to write the common tasks repeatly 
