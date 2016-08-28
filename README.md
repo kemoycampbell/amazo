@@ -33,13 +33,84 @@ error stating the type of error that occurs and methods indicate the method that
  * advanceSql($query,$bindings)
  * createRandomGenerate($length,$includeSpecialChar='yes',$includeNum='yes',$includeString='yes')
  * if_contain_special_chars($string)
- * validateUSAZip($zip_code)
+ 
+##Security
+Security is more important than ever. Amazo was designed with security in mind. Our connection and modification of databases
+are done using PDO/prepare statements. We also ensure that connection have been established prior to performing a CRUD operation. In additional, our methods perform validations prior to moving forwards such as parameters restrains etc. Amazo is constantly improving hence we welcome feedbacks,suggestions,inputs,criticism and how we can improve the overall security of the framework.
 
+##Usuage
+below you will find some examples of structured usuages
 
+```php
+<?php
 
-
+    require_once('../src/Amazo/Amazo.php');
+    use Amazo\Amazo;
     
+    //database configuration
+    
+    //you may edit $dns to match your database type postgree,mysql and so on. see php document
+    //http://php.net/manual/en/pdo.connections.php and http://php.net/manual/en/ref.pdo-mysql.connection.php for 
+    //further examples
+    $dns='mysql:host=localhost;dbname=dbname;charset=utf8'; 
+    $username='root';//database username
+    $password='';//database password
+
+
+    //do not need any configuration
+    $config = array('dns'=>$dns,'username'=>$username,'password'=>$password);
+    
+    //IllegalArgumentException is thrown here if the parameter requirement is not met
+    $amazo = new Amazo($config); 
+    
+    //connect to the database. I allow this method to return the PDO instance for flexibility
+    //and as an additional feature to those who want it
+    $status = $amazo->connect();
+    
+    //connection failed
+    if($status instanceof stdClass)
+    {
+        some actions when the connection failed
+    }
+    
+    //insert example 
+    $col1 = 'amazo';$col='is';$col3='neat';
+    $columns = 'col1,col2,col3';
+    $table = 'tablename'
+    $values = ':col1,:col2,:col3';
+    $bindings = array(':col1'=>$col1,':col2'=>$col2,':col3'=>$col3);
+    
+    $res = $amazo->insert($columns,$bindings,$table,$values);
+    
+    //successful
+    if($res===true)
+    {
+        echo 'ya ya';
+    }
+    
+    //failed
+    else if($res instanceof stdClass)
+    {
+        your action here
+    }
+
+?>
+
+```
+
+##changelog
+Version 2
+* Rename from ComTask to Amazo as in the DC comic :-)
+* Consistency return statments such as stdclass for exception and errors
+* update and insert method returns true on successful execution
+* ensure connection is established prior to perform CRUD operations
+* Secure password hashing now use the default BCRYPT instead of a manaual generated 1 and is update to the newest standard
+* Remove no longer need methods
+
 ######TODO
+* write unit tests using phpUnitTest
+* Add .travis.yml
+* Add composer for easy installation
 * finish commenting methods
 * improve code consistency
 * write more reliable tests
@@ -51,9 +122,8 @@ It is my hope that this framework will:
 #
 1. Mature
 2. Fix and patch bugs as they are discovered
-3. Improve in robustness
+3. Improve in robustness/security
 4. Implemented Additional features
-5. Remained lightweight
 
 Amazo is an open source, community-driven project. If you'd like to contribute, feel free to fork the project, play around with it, break it, improve it and lastly but not the least, submit pull requests.
 
