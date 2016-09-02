@@ -2,11 +2,11 @@
 
 As we develops web applications, we want to spend time on doing real works instead of writing tedious tasks such as prepare
 statements to perform create, update and delete (CRUD) operations on the databases via PDO class, verify credentials, create
-secured hashed password and among others. Amazo is a OOP framework that aims on speeding up the overall development time by providing
+secured hashed password and among others. Amazo is a OOP utility library that aims on speeding up the overall development time by providing
 methods that already take care of those for you under the hood. Thus elimating the need for you to write the common tasks repeatly 
 from scratch.
 
-In additional Amazo is the improvised version of the framework https://github.com/kemoycampbell/comTaskLib. Unlike the previous
+In additional Amazo is the improvised version of the utility library https://github.com/kemoycampbell/comTaskLib. Unlike the previous
 version Amazo is more robust, available to use on multiple databases such as postgree, mysql, etc. In Amazo we also introduced 
 a more consistency way of parsing the return statements of the methods. For example, should an exception or error occurs on a
 method, they are returned via std class with the following properties : status, error and method. Status always return 400, with
@@ -36,7 +36,7 @@ error stating the type of error that occurs and methods indicate the method that
  
 ##Security
 Security is more important than ever. Amazo was designed with security in mind. Our connection and modification of databases
-are done using PDO/prepare statements. We also ensure that connection have been established prior to performing a CRUD operation. In additional, our methods perform validations prior to moving forwards such as parameters restrains etc. Amazo is constantly improving hence we welcome feedbacks,suggestions,inputs,criticism and how we can improve the overall security of the framework.
+are done using PDO/prepare statements. We also ensure that connection have been established prior to performing a CRUD operation. In additional, our methods perform validations prior to moving forwards such as parameters restrains etc. Amazo is constantly improving hence we welcome feedbacks,suggestions,inputs,criticism and how we can improve the overall security of the library.
 
 ##Install
 A composer.json will be pushed soon. til then clone via the terminal as follow:
@@ -125,7 +125,7 @@ Version 2
     
 #Contributing and goal
 
-It is my hope that this framework will:
+It is my hope that this library will:
 #
 1. Mature
 2. Fix and patch bugs as they are discovered
