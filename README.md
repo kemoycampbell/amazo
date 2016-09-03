@@ -1,4 +1,6 @@
-#####Note: With feedback received, the project is being updated and massive changes in the architecture is coming. You may star, watch, fork but do not submit any pull requests until I have pushed the changes. If you have suggestions please use the issues.
+#####Notice: With feedback received, the project is being updated and massive changes in the architecture is coming. You may star, watch, fork and pull request. If you have suggestions please use the issues.
+
+Please do not use this code in production as it is an alpha version and is unstable
 
 # Amazo Overview
 
