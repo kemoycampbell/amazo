@@ -1,3 +1,5 @@
+#####Note: With feedback received, the project is being updated and massive changes in the architecture is coming. You may star, watch, fork but do not submit any pull requests until I have pushed the changes. If you have suggestions please use the issues.
+
 # Amazo Overview
 
 As we develops web applications, we want to spend time on doing real works instead of writing tedious tasks such as prepare
