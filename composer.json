@@ -4,5 +4,8 @@
   },
   "autoload": {
     "psr-4": { "Amazo\\": "src/" }
+  },
+  "require": {
+    "phpmetrics/phpmetrics": "^1.10"
   }
 }
