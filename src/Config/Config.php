@@ -20,7 +20,7 @@ class Config
     {
         $this->username = $dbUsername;
         $this->password = $dbPassword;
-        $this->dsn = $dbUsername;
+        $this->dsn = $dbDsn;
     }
 
     public function getDbUsername()
