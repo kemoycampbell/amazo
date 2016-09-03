@@ -16,6 +16,8 @@ a more consistency way of parsing the return statements of the methods. For exam
 method, they are returned via std class with the following properties : status, error and method. Status always return 400, with
 error stating the type of error that occurs and methods indicate the method that the error occured in.
 
+##usuage
+
 
 
 
