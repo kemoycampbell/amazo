@@ -14,6 +14,7 @@ use Amazo\Config\Config;
 
 class Database
 {
+
     /**
      * @var $pdo
      */
@@ -29,6 +30,9 @@ class Database
      */
     private $connected = false;
 
+    private $lockEnable = false;
+
+
 
     /**
      * Database constructor - Takes and initialize the constructor with the Config
@@ -39,6 +43,7 @@ class Database
     {
         $this->config = $config;
     }
+
 
     /**
      * This method taks the dsn, username and password from the Config
@@ -56,6 +61,8 @@ class Database
         //connect
         $this->pdo = new \PDO($dns,$username,$password);
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE,\PDO::ERRMODE_EXCEPTION);
+        $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES,false);
+
         $this->connected = true;
         return $this->pdo;
     }
@@ -73,18 +80,43 @@ class Database
      */
     public function insert($columns,$bindings,$table,$values)
     {
-        if($this->connected)
+        if($this->pdo instanceof \PDO)
         {
-            //build the query statement and execute
+            $this->beginTransaction();
+
             $query ='INSERT INTO '.$table.'('.$columns.')VALUES('.$values.')';
             $stmt = $this->pdo->prepare($query);
-
             $stmt->execute($bindings);
 
-            return $stmt->rowCount() > 0;
+            return $stmt->rowCount();
         }
 
         return $this->connectionNotEstablished();
+    }
+
+    public function beginTransaction()
+    {
+        if(!$this->lockEnable)
+        {
+           if($this->pdo instanceof \PDO)
+           {
+               $this->pdo->beginTransaction();
+               $this->lockEnable = true;
+           }
+        }
+    }
+
+    public function rollBack()
+    {
+        if($this->lockEnable)
+        {
+            $this->lockEnable = false;
+        }
+
+        if($this->pdo instanceof \PDO)
+        {
+            $this->pdo->rollBack();
+        }
     }
 
 
@@ -102,39 +134,30 @@ class Database
      * @return bool|\stdClass|\PDOStatement -returns false if no match was found, return stdClass if any Exception.
      *if a match was found, a PDOstatement is returned
      */
-    public function select($columns,$bindings,$table,$where='')
+    public function select($columns='*',$table,$bindings=array(),$where=NULL)
     {
         //ensure connected
-        if($this->connected)
+        if($this->pdo instanceof \PDO)
         {
-            //building the query
-            if($where!=='')
-            {
-                $where = 'where '.$where;
-            }
-            $query = 'SELECT '.$columns.' FROM '.$table.' '.$where.'';
-            $stmt = $this->PDO->prepare($query);
+            $stmt = NULL;
+            $query = 'SELECT '.$columns.' FROM '.$table;
 
-
-            //execute base on conditions
-            if($where==='' || empty($where))
+            if($where===NULL)
             {
+                $stmt = $this->pdo->prepare($query);
                 $stmt->execute();
             }
-
             else
             {
+                $query.=' where '.$where;
+                $stmt = $this->pdo->prepare($query);
                 $stmt->execute($bindings);
             }
 
-            //any success result? return PDOSTATEMENT otherwise false
-            if($stmt->rowCount() > 0)
-            {
-                return $stmt;
-            }
-
-            return false;
+            //if we have results then return the $stmt otherwise false
+            return ($stmt->rowCount() > 0) ? $stmt : false;
         }
+
 
         return $this->connectionNotEstablished();
     }
@@ -148,15 +171,34 @@ class Database
      * @return bool|\stdClass - return true if the data was successful delete. False if nothing was deleted or stdclass
      * should any type of errors occurs
      */
-    public function delete($bindings,$table,$where)
+    public function delete($bindings=array(),$table,$where=NULL)
     {
         if($this->connected)
         {
-            $query = 'DELETE FROM '.$table.' Where '.$where. ' ';
-            $stmt = $this->pdo->prepare($query);
-            $stmt->execute($bindings);
+          if($this->pdo instanceof \PDO)
+          {
+              $this->beginTransaction();
 
-            return $stmt->rowCount() > 0;
+              $query = 'DELETE FROM '.$table;
+              $stmt = NULL;
+
+              if($where==NULL)
+              {
+                  $stmt = $this->pdo->prepare($query);
+                  $stmt->execute();
+              }
+
+              else
+              {
+                  $query.=' where '.$where;
+                  $stmt = $this->pdo->prepare($query);
+                  $stmt->execute($bindings);
+              }
+
+              //return whether the result was successful deleted
+              return $stmt->rowCount() > 0;
+          }
+
         }
 
         return $this->connectionNotEstablished();
@@ -177,38 +219,66 @@ class Database
     public function update($bindings, $table, $set,$where)
     {
         //ensure connection has established
-        if ($this->connected) {
-            //try execute the query statements
-            $query = 'UPDATE ' . $table . ' SET ' . $set . ' WHERE ' . $where . ' ';
-            $stmt = $this->PDO->prepare($query);
+        if ($this->connected)
+        {
+            if($this->pdo instanceof \PDO)
+            {
+                $this->beginTransaction();
 
-            //update successful return true
-            $stmt->execute($bindings);
+                $query = 'UPDATE ' . $table . ' SET ' . $set . ' WHERE ' . $where . ' ';
+                $stmt = $this->pdo->prepare($query);
+                $stmt->execute($bindings);
 
-            return $stmt->rowCount() > 0;
+                return $stmt->rowCount() > 0;
+            }
+
         }
 
         return $this->connectionNotEstablished();
     }
 
-
-    /**
-     * This gives the ability to performs far more advanced sql task such as including limits,unions,etc
-     * @param $query - the advanced sql
-     * @param $bindings
-     * @return \stdClass
-     */
-    public function advanceSql($query,$bindings)
+    public function hasTable($table)
     {
-        //ensure that the connection is already established
-        if($this->connected)
+        if(!isset($table))
         {
-            $stmt = $this->pdo->prepare($query);
-            $stmt->execute($bindings);
-            return $stmt;
+            return false;
         }
 
-        return $this->connectionNotEstablished();
+        if(empty($table) && empty($trim))
+        {
+            return false;
+        }
+
+        if(!$this->pdo instanceof \PDO || !$this->connected)
+        {
+            return $this->connectionNotEstablished();
+        }
+
+        $hasTable = true;
+
+        try
+        {
+            $sql = 'SELECT * FROM '.$table. ' LIMIT 1';
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute();
+        }
+
+        catch(\Exception $e)
+        {
+            $hasTable = false;
+        }
+
+        return $hasTable;
+
+    }
+
+    /**
+     * @return the PDO instance otherwise a null. This gives developers to perform
+     * advance queries beyond the listed featured provided in this framework.
+     */
+    public function pdo()
+    {
+        return $this->pdo;
     }
 
 

@@ -11,10 +11,12 @@ namespace Amazo;
 
 use Amazo\Config\Config;
 use Amazo\Database\Database;
+use Amazo\Protection\Protection;
 
 class Amazo
 {
     private $config;
+    private $database=NULL;
 
 
     public function __construct(Config $config)
@@ -24,7 +26,17 @@ class Amazo
 
     public function database()
     {
-       return new Database($this->config);
+       if($this->database==NULL)
+       {
+           $this->database = new Database($this->config);
+       }
+
+       return $this->database;
+    }
+
+    public function protection()
+    {
+        return new Protection();
     }
 
 }
