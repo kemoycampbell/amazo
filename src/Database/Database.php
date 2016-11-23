@@ -94,6 +94,26 @@ class Database
         return $this->connectionNotEstablished();
     }
 
+    public function isEmpty($object)
+    {
+        if(!isset($object))
+            return true;
+
+        if($object==null)
+            return true;
+
+        if(strlen(trim($object))<=0)
+            return true;
+
+        if(is_array($object))
+        {
+            if(count($object)<=0)
+                return true;
+        }
+
+        return false;
+    }
+
     public function beginTransaction()
     {
         if(!$this->lockEnable)
@@ -103,6 +123,17 @@ class Database
                $this->pdo->beginTransaction();
                $this->lockEnable = true;
            }
+        }
+    }
+
+    public function commit()
+    {
+        if($this->lockEnable)
+        {
+            if($this->pdo instanceof \PDO)
+            {
+                $this->pdo->commit();
+            }
         }
     }
 
@@ -171,10 +202,8 @@ class Database
      * @return bool|\stdClass - return true if the data was successful delete. False if nothing was deleted or stdclass
      * should any type of errors occurs
      */
-    public function delete($bindings=array(),$table,$where=NULL)
+    public function delete($table,$where=NULL,$bindings=array())
     {
-        if($this->connected)
-        {
           if($this->pdo instanceof \PDO)
           {
               $this->beginTransaction();
@@ -199,8 +228,6 @@ class Database
               return $stmt->rowCount() > 0;
           }
 
-        }
-
         return $this->connectionNotEstablished();
     }
 
@@ -216,11 +243,9 @@ class Database
      * @return bool|\stdClass - return true if the update was successful, false if nothing was update otherwise stdclass with details
      * of error(s) that occured.
      */
-    public function update($bindings, $table, $set,$where)
+    public function update($table, $set,$where,$bindings)
     {
         //ensure connection has established
-        if ($this->connected)
-        {
             if($this->pdo instanceof \PDO)
             {
                 $this->beginTransaction();
@@ -232,24 +257,19 @@ class Database
                 return $stmt->rowCount() > 0;
             }
 
-        }
 
         return $this->connectionNotEstablished();
     }
 
     public function hasTable($table)
     {
-        if(!isset($table))
+        if($this->isEmpty($table))
         {
-            return false;
+            throw new \InvalidArgumentException("table name cannot be empty");
         }
 
-        if(empty($table) && empty($trim))
-        {
-            return false;
-        }
 
-        if(!$this->pdo instanceof \PDO || !$this->connected)
+        if(!$this->pdo instanceof \PDO )
         {
             return $this->connectionNotEstablished();
         }
