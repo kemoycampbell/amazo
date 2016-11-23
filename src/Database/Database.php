@@ -78,7 +78,7 @@ class Database
      * @return bool|\stdClass - returns true if the insert was successful.
      * returned otherwise a false is return. PDOException are thrown upon database exception
      */
-    public function insert($columns,$bindings,$table,$values)
+    public function insert($table,$columns,$values,$bindings)
     {
         if($this->pdo instanceof \PDO)
         {
@@ -165,7 +165,7 @@ class Database
      * @return bool|\stdClass|\PDOStatement -returns false if no match was found, return stdClass if any Exception.
      *if a match was found, a PDOstatement is returned
      */
-    public function select($columns='*',$table,$bindings=array(),$where=NULL)
+    public function select($table,$columns='*',$where=NULL,$bindings=array())
     {
         //ensure connected
         if($this->pdo instanceof \PDO)
