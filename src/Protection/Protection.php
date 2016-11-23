@@ -9,6 +9,8 @@
 namespace Amazo\Protection;
 
 
+use Amazo\Database\Database;
+
 class Protection
 {
     private $sandbox = false;
@@ -22,19 +24,59 @@ class Protection
         }
     }
 
-    public function secureCreateUserAccount($pdo,$table,$username,$password,$usernameCol,$passwordCol)
+    private function validate_secure_create_user_account($database,$table,$username,$password,$usernameCol,$passwordCol)
     {
-        $query = "INSERT INTO $table ($usernameCol,$passwordCol) VALUES(:username,:password)";
-        $stmt = $pdo->prepare($query);
+        if($this->isEmpty($database))
+        {
+            throw new \InvalidArgumentException("database parameter cannot be empty");
+        }
+        if($this->isEmpty($table))
+        {
+            throw new \InvalidArgumentException("table parameter cannot be empty");
+        }
+        if($this->isEmpty($username))
+        {
+            throw new \InvalidArgumentException("username parameter cannot be empty");
 
-        //replace the password with the hashed one
-        $password = $this->generateSecurePassword($username,$password);
+        }
 
-        $stmt->execute(array(':username'=>$username,':password'=>$password));
+        if($this->isEmpty($usernameCol))
+        {
+            throw new \InvalidArgumentException("usernamecol parameter cannot be empty");
+        }
 
+        if($this->isEmpty($password))
+        {
+            throw new \InvalidArgumentException("password parameter cannot be empty");
+        }
 
-        //return whether the account was successful created
-        return $stmt->rowCount() > 0;
+        if($this->isEmpty($passwordCol))
+        {
+            throw new \InvalidArgumentException("passwordcol parameter cannot be empty");
+        }
+
+        if(!$database instanceof Database)
+        {
+            throw new \InvalidArgumentException("$database must be an instance of Database");
+        }
+    }
+
+    public function secureCreateUserAccount($database,$table,$username,$password,$usernameCol,$passwordCol)
+    {
+        $this->validate_secure_create_user_account($database,$table,$username,$password,$usernameCol,$passwordCol);
+
+        if($database instanceof Database)
+        {
+            $columns = $usernameCol.','.$passwordCol;
+            $bindings = array(':username'=>$username,':password'=>$password);
+            $values = ':username,:password';
+            $insert = $database->insert($columns,$bindings,$table,$values);
+
+            return $insert;
+        }
+
+        //for any reason
+        return false;
     }
 
     public function enableSandbox()
@@ -43,14 +85,49 @@ class Protection
         $this->ip = '127.0.0.1';
     }
 
-    public function generateSecurePassword($nounce,$password,$options = array('cost'=>12))
+    public function isEmpty($object)
     {
+        if(!isset($object))
+            return true;
+
+        if($object==null)
+            return true;
+
+        if(strlen(trim($object))<=0)
+            return true;
+
+        if(is_array($object))
+        {
+            if(count($object)<=0)
+                return true;
+        }
+
+        return false;
+    }
+
+    public function generateSecurePassword($nounce="",$password,$options = array('cost'=>12))
+    {
+        if($this->isEmpty($password))
+        {
+            throw new \InvalidArgumentException("Password cannot empty!");
+        }
+
+        if(!is_array($options))
+        {
+            throw new \InvalidArgumentException("options must be an array!");
+        }
+
         $combination = $nounce.$password;
         return password_hash($combination,PASSWORD_BCRYPT,$options);
     }
 
     public function trimIP($ip)
     {
+        if($this->isEmpty($ip))
+        {
+            throw new \InvalidArgumentException("ip cannot be empty");
+        }
+
         $pos = strrpos($ip,'.');
         if($pos!==false)
         {
@@ -62,6 +139,11 @@ class Protection
 
     function validate_ip($ip)
     {
+        if($this->isEmpty($ip))
+        {
+            throw new \InvalidArgumentException("ip cannot be empty!");
+        }
+
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
             return false;
         }
@@ -92,6 +174,11 @@ class Protection
 
     public function enforcer($logoutPath)
     {
+        if($this->isEmpty($logoutPath))
+        {
+            throw new \InvalidArgumentException("logout path cannot be empty");
+        }
+
         if($this->sandbox==false)
         {
             $this->ip = $this->get_ip_address();
@@ -118,7 +205,10 @@ class Protection
 
     public function logout($path)
     {
-
+        if($this->isEmpty($path))
+        {
+            throw new \InvalidArgumentException("path cannot be empty");
+        }
         session_destroy();
 
         //prevent path traversal
