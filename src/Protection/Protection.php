@@ -206,6 +206,24 @@ class Protection
     {
         return $this->associateLoginData;
     }
+
+    /**
+     * This method is use to login the user in and set up the session. The method takes
+     * username, password, user account table, the columns such as username and password columns,
+     * where clause eg $where = 'username = :user and password = :pass" as well as bindings which
+     * is an array that binds the place holders example $bindings = array(':pass'=>$password,':user'=>$username)
+     *
+     * @param $username
+     * @param $password
+     * @param $table
+     * @param $columns
+     * @param $where
+     * @param $bindings
+     * @return bool - return true user successful logged in, false if incorrect.
+     *
+     *Exception are thrown if the argument parameters are missing or empty. Exceptions are also
+     * thrown if any issue occured with the sql statement
+     */
     public function login($username,$password,$table,$columns,$where,$bindings)
     {
 
