@@ -43,6 +43,64 @@ handle exceptions accordingly. It is also assumed that the developers understand
 * Developers are familiar with all various type of attack against web applications and know how to protect againstthem.
 * Developers are running the latest version of Amazo
 
+#usage
+
+###### Database usage example
+
+```php
+//Dependencies declarations
+require('../src/Config/Config.php');
+require('../src/Amazo/Amazo.php');
+require('../src/Database/Database.php');
+use Amazo\Amazo;
+use Amazo\Config\Config;
+
+//database configuration
+$dsn = 'mysql:host=localhost;dbname=dvwacopy;charset=utf8';
+$username = 'root';
+$password = '';
+
+$config = new Config($username,$password,$dsn);
+//setting up amazo
+try
+{
+    $amazo = new Amazo($config);
+
+    //connect the database
+    $amazo->database()->connect();
+}
+catch(Exception $e)
+{
+    //some action
+}
+
+//simple select example
+try
+{
+    $table = 'users';
+    $res = $amazo->database()->select($table);
+
+    if($res instanceof PDOStatement)
+    {
+        $data = $res->fetchAll();
+
+        print_r($data);
+    }
+    else if($res instanceof stdClass)
+    {
+        echo "attempting to use a database for which a connection havent successful established!";
+        exit;
+    }
+
+}
+
+catch(Exception $e)
+{
+    //some action
+}
+
+```
+
 
 
 
