@@ -122,9 +122,6 @@ $config = new Config($username,$password,$dsn);
 try
 {
     $amazo = new Amazo($config);
-
-    //connect the database
-    $amazo->database()->connect();
 }
 catch(Exception $e)
 {
