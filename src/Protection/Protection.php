@@ -16,25 +16,26 @@ class Protection
     private $sandbox = false;
     private $ip = '127.0.0.1';
     private $associateLoginData = null;
+    private $database;
+
 
     /**
-     * Protection constructor -this create a protection constructor and return the instance.
+     * * Protection constructor -this create a protection constructor and return the instance.
      * The constructor checks if the session has started, if not it automatically start it
+     * @param Database $database - take the instance of Database
      */
-    public function __construct()
+    public function __construct(Database $database)
     {
         if (session_status() == PHP_SESSION_NONE)
         {
             session_start();
         }
+
+        $this->database = $database;
     }
 
-    private function validate_secure_create_user_account($database,$table,$username,$password,$usernameCol,$passwordCol)
+    private function validate_secure_create_user_account($table,$username,$password,$usernameCol,$passwordCol)
     {
-        if($this->isEmpty($database))
-        {
-            throw new \InvalidArgumentException("database parameter cannot be empty");
-        }
         if($this->isEmpty($table))
         {
             throw new \InvalidArgumentException("table parameter cannot be empty");
@@ -60,10 +61,6 @@ class Protection
             throw new \InvalidArgumentException("passwordcol parameter cannot be empty");
         }
 
-        if(!$database instanceof Database)
-        {
-            throw new \InvalidArgumentException("$database must be an instance of Database");
-        }
     }
 
     /**
@@ -75,11 +72,11 @@ class Protection
      * @param $passwordCol
      * @return bool|\stdClass
      */
-    public function secureCreateUserAccount($database,$table,$username,$password,$usernameCol,$passwordCol)
+    public function secureCreateUserAccount($table,$username,$password,$usernameCol,$passwordCol)
     {
-        $this->validate_secure_create_user_account($database,$table,$username,$password,$usernameCol,$passwordCol);
+        $this->validate_secure_create_user_account($table,$username,$password,$usernameCol,$passwordCol);
 
-        if($database instanceof Database)
+        if($this->database instanceof Database)
         {
             //the username acts as nounce in this case
             $password = $this->generateSecurePassword($username,$password);
@@ -87,14 +84,15 @@ class Protection
             $columns = $usernameCol.','.$passwordCol;
             $bindings = array(':username'=>$username,':password'=>$password);
             $values = ':username,:password';
-            $insert = $database->insert($columns,$bindings,$table,$values);
+            $insert = $this->database->insert($columns,$bindings,$table,$values);
 
             return $insert;
         }
 
-        //for any reason
         return false;
+
     }
+
 
     /**
      * This method is use to enable the sandbox.
@@ -141,7 +139,7 @@ class Protection
      * @param array $options
      * @return bool|string return a string of hashed password if succeed False if failed.
      */
-    public function generateSecurePassword($nounce="",$password,$options = array('cost'=>12))
+    public function generateSecurePassword($password,$nounce="",$options = array('cost'=>12))
     {
         if($this->isEmpty($password))
         {
@@ -208,12 +206,9 @@ class Protection
     {
         return $this->associateLoginData;
     }
-    public function isCredentialValid($database,$username,$password,$table,$columns,$where,$bindings)
+    public function login($username,$password,$table,$columns,$where,$bindings)
     {
-        if(!isset($database) || !$database instanceof Database)
-        {
-            throw new \InvalidArgumentException("databasse parameter must be an instance of Database!");
-        }
+
 
         if($this->isEmpty($username) || $this->isEmpty($password) || $this->isEmpty($table)||
             $this->isEmpty($columns) || $this->isEmpty($where) || $this->isEmpty($bindings))
@@ -221,11 +216,15 @@ class Protection
             throw new \InvalidArgumentException("all parameters are required!");
         }
 
-        if($database instanceof Database)
+        if($this->database instanceof Database)
         {
-            $res = $database->select($table,$columns,$where,$bindings);
+
+            $res = $this->database->select($table,$columns,$where,$bindings);
             if($res instanceof \PDOStatement)
             {
+                $_SESSION['ip_address'] = $this->get_ip_address();
+                $_SESSION['verified'] = true;
+                $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
 
                 $this->associateLoginData = $res->fetch();
                 return true;
@@ -235,6 +234,10 @@ class Protection
         return false;
     }
 
+    /**
+     * This method is used to fetch the user's ip
+     * @return bool|string return the ip otherwise return false upon failure to fetch ip
+     */
     public function get_ip_address()
     {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
@@ -257,11 +260,37 @@ class Protection
         return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
     }
 
-    public function enforcer($logoutPath)
+
+    /**This method is used to secure page for only authorized users.
+     *
+     * This method takes the logout, register, and login path then checks if the user is authorized to view a page.
+     * If the user is not logged in, he/she will be redirected to the login page. If the user session has changed since
+     * he/she last logged in, they will be redirect to the login page.
+     *
+     * Sessions that is checked for:
+     * ip address, user_agent, username, verified
+     *
+     * The sessions are set by the login function
+     * @param $logoutPath
+     * @param $register
+     * @param $login
+     */
+    public function auth($logoutPath,$register,$login)
     {
-        if($this->isEmpty($logoutPath))
+        //get the current page
+        $basename = basename($_SERVER["SCRIPT_FILENAME"], '.php');
+
+        if($this->isEmpty($logoutPath) || $this->isEmpty($register) || $this->isEmpty($login))
         {
-            throw new \InvalidArgumentException("logout path cannot be empty");
+            throw new \InvalidArgumentException("all parameters are required");
+        }
+
+        if(!isset($_SESSION['username']) || !isset($_SESSION['verified']))
+        {
+            if($basename!==$register || $basename!==$login)
+            {
+                $this->logout($logoutPath);
+            }
         }
 
         if($this->sandbox==false)
@@ -288,6 +317,10 @@ class Protection
         }
     }
 
+    /**
+     * This method is used to logout the user and destroy all sessions
+     * @param $path - the path to redirect the user upon successful logout.
+     */
     public function logout($path)
     {
         if($this->isEmpty($path))
