@@ -31,6 +31,19 @@ Amazo is a lightweight skeleton-like framework that assist developers in releasi
 #Amazo Layout
 ![ScreenShot](https://github.com/kemoycampbell/amazo/blob/master/amazo.png)
 
+#Assumptions and Dependicies
+Vulnerabilities are often introduced in system because developers failed to take securities into consideration. Failure to fully understand the risks of improper usage of Amazo component can leads to a catastrophic system which can result in millions of dollars to clean up or repair. Amazo leaves exceptional handling up to the developers, it is assumed that the developers will
+handle exceptions accordingly. It is also assumed that the developers understands that Amazo is written in PHP therefore it inherits any programming flaws or risks that is associated with the language. With that being said, the following assumptions are made:
+
+* The minimum required version PHP 5.6 is installed
+* Apache is running and accessible to the developer’s prefer port.
+* MYSQL server is installed. Other type of database servers have not been tested.
+* Developers handle all exceptions.
+* Developer is well verses in using PHP and accept both known and unknown risks are associate with the language.
+* Developers are familiar with all various type of attack against web applications and know how to protect againstthem.
+* Developers are running the latest version of Amazo
+
+
 
 
 
