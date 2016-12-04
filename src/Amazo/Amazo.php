@@ -19,8 +19,18 @@ class Amazo
     private $database=NULL;
 
 
-    public function __construct(Config $config)
+    public function __construct()
     {
+    }
+
+    public function setConfig($config)
+    {
+        if(!$config instanceof Config)
+        {
+            throw new \InvalidArgumentException("config must be an instance of Config");
+
+        }
+
         $this->config = $config;
     }
 

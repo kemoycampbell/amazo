@@ -24,15 +24,25 @@ class Protection
      * The constructor checks if the session has started, if not it automatically start it
      * @param Database $database - take the instance of Database
      */
-    public function __construct(Database $database)
+    public function __construct()
     {
         if (session_status() == PHP_SESSION_NONE)
         {
             session_start();
         }
 
-        $this->database = $database;
+
     }
+
+   public function setDatabase($database)
+   {
+       if(!$database instanceof Database)
+       {
+           throw new \InvalidArgumentException("database must be an instance of Database");
+       }
+
+       $this->database = $database;
+   }
 
     private function validate_secure_create_user_account($table,$username,$password,$usernameCol,$passwordCol)
     {
