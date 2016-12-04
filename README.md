@@ -48,7 +48,6 @@ handle exceptions accordingly. It is also assumed that the developers understand
 ###### Database usage example
 
 ```php
-//Dependencies declarations
 require('../src/Config/Config.php');
 require('../src/Amazo/Amazo.php');
 require('../src/Database/Database.php');
@@ -61,22 +60,16 @@ $username = 'root';
 $password = '';
 
 $config = new Config($username,$password,$dsn);
-//setting up amazo
+
+
+//using amazo
 try
 {
-    $amazo = new Amazo($config);
+    $amazo = new Amazo();
+    $amazo->setConfig($config);
+    $amazo->database()->connect(); //must establish connection before database related tasks
 
-    //connect the database
-    $amazo->database()->connect();
-}
-catch(Exception $e)
-{
-    //some action
-}
-
-//simple select example
-try
-{
+    //simple select example
     $table = 'users';
     $res = $amazo->database()->select($table);
 
@@ -86,6 +79,8 @@ try
 
         print_r($data);
     }
+
+    //stdClass is thrown for database-related operation which we have not first established connection with the database
     else if($res instanceof stdClass)
     {
         echo "attempting to use a database for which a connection havent successful established!";
@@ -94,43 +89,26 @@ try
 
 }
 
+//for the sake of simplicity catch every exception. maybe customized to catch specific exceptions and handle
+//them differently
 catch(Exception $e)
 {
-    //some action
+    //do something
 }
 
 ```
 
 ###### Protection example
 ```php
-require('../src/Config/Config.php');
 require('../src/Amazo/Amazo.php');
-require('../src/Database/Database.php');
 require('../src/Protection/Protection.php');
 use Amazo\Amazo;
-use Amazo\Config\Config;
-
-
-//database configuration
-$dsn = 'mysql:host=localhost;dbname=dvwacopy;charset=utf8';
-$username = 'root';
-$password = '';
-
-$config = new Config($username,$password,$dsn);
-
-//setting up amazo
-try
-{
-    $amazo = new Amazo($config);
-}
-catch(Exception $e)
-{
-    //some action
-}
 
 //generated secure salt hashed password
 try
 {
+    $amazo = new Amazo();
+
     $nounce = "someNounce"; //nounce parameter is optional
     $password = "amazo";
 
