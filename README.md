@@ -103,34 +103,15 @@ catch(Exception $e)
 
 ###### Protection example
 ```php
-require('../src/Config/Config.php');
 require('../src/Amazo/Amazo.php');
-require('../src/Database/Database.php');
 require('../src/Protection/Protection.php');
 use Amazo\Amazo;
-use Amazo\Config\Config;
-
-
-//database configuration
-$dsn = 'mysql:host=localhost;dbname=dvwacopy;charset=utf8';
-$username = 'root';
-$password = '';
-
-$config = new Config($username,$password,$dsn);
-
-//setting up amazo
-try
-{
-    $amazo = new Amazo($config);
-}
-catch(Exception $e)
-{
-    //some action
-}
 
 //generated secure salt hashed password
 try
 {
+    $amazo = new Amazo();
+
     $nounce = "someNounce"; //nounce parameter is optional
     $password = "amazo";
 
